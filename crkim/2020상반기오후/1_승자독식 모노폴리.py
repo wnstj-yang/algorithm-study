@@ -13,56 +13,125 @@
 
 # 다시 생각하는 과정
 # 모든 움직임 시에 k개의 값도 함께 카운트 해줘야 함
-# 현재 위치 기준으로 이동할 수 있는 4방향 탐색, 
+# 현재 위치 기준으로 이동할 수 있는 4방향 탐색 
 
-n, m ,k = map(int, input().split())
-board = [list(map(int, input().split())) for _ in range(n)]
-start = map(int, input().split())
-p_dir= [list(map(int, input().split())) for _ in range(m*4)]
+# 해설 참조
 
-player = [[(1000, 1000) for _ in range(n)] for _ in range(n)]
-n_player = [[(1000, 1000) for _ in range(n)] for _ in range(n)]
+DIR_NUM = 4
+EMPTY = (401, 401)
+EMPTY_NUM = 401
 
-dx = [-1, 1, 0, 0]
-dy = [0, 0, -1, 1]
+n, m, k = tuple(map(int, input().split()))
+given_map = [list(map(int, input().split())) for _ in range(n)]
+next_dir = [[[0 for _ in range(DIR_NUM)] for _ in range(DIR_NUM)] for _ in range(m + 1)]
+player = [[EMPTY for _ in range(n)] for _ in range(n)]
+next_player = [[EMPTY for _ in range(n)] for _ in range(n)]
+contract = [[EMPTY for _ in range(n)] for _ in range(n)]
+elapsed_time = 0
 
-time = 0
-alive = [i for i in range(1, m+1)]
+def in_range(x, y):
+    return 0 <= x and x < n and 0 <= y and y < n
 
-def range_check(x, y, target):
-    if not (0 <= x and x < n and 0 <= y and y < n):
+def can_go(x, y, target_num):
+    if not in_range(x, y):
         return False
-    if n_player[x][y] == (1000, 1000):
-        n_player[x][y] = target
-    else :
-        pass
-    return True
+    contract_num, _ = contract[x][y]
+    return contract_num == target_num
 
-def occupy(target):
-    return True
 
-def dir_check(target) :
-    return True
+def next_pos(x, y, curr_dir):
+    dxs, dys = [-1, 1, 0, 0], [0, 0, -1, 1]
+    num, _ = player[x][y]
+    for move_dir in next_dir[num][curr_dir]:
+        nx, ny = x + dxs[move_dir], y + dys[move_dir]
+        if can_go(nx, ny, EMPTY_NUM):
+            return (nx, ny, move_dir)
+    for move_dir in next_dir[num][curr_dir]:
+        nx, ny = x + dxs[move_dir], y + dys[move_dir]
+        
+        if can_go(nx, ny, num):
+            return (nx, ny, move_dir)
 
-def one_term():
-    for player in range(4):
-        if occupy(player) == False :
-            dir_check(player)
-        else :
-            range_check(player)
+def update(x, y, new_player):
+    if next_player[x][y] > new_player:
+        next_player[x][y] = new_player
+
+
+def move(x, y):
+    num, curr_dir = player[x][y]
+    nx, ny, move_dir = next_pos(x, y, curr_dir)
+    update(nx, ny, (num, move_dir))
+
+def dec_contract(x, y):
+    num, remaining_period = contract[x][y]
+    if remaining_period == 1:
+        contract[x][y] = EMPTY
+    else:
+        contract[x][y] = (num, remaining_period - 1)
+
+
+def add_contract(x, y):
+    num, _ = player[x][y]
+    contract[x][y] = (num, k)
+
+
+def simulate():
+    for i in range(n):
+        for j in range(n):
+            next_player[i][j] = EMPTY
 
     for i in range(n):
-        pass
+        for j in range(n):
+            if player[i][j] != EMPTY:
+                move(i, j)
+
+    for i in range(n):
+        for j in range(n):
+            player[i][j] = next_player[i][j]
+
+    for i in range(n):
+        for j in range(n):
+            if contract[i][j] != EMPTY:
+                dec_contract(i, j)
+
+    for i in range(n):
+        for j in range(n):
+            if player[i][j] != EMPTY:
+                add_contract(i, j)
+
+
+def end():
+    if elapsed_time >= 1000:
+        return True
+    for i in range(n):
+        for j in range(n):
+            if player[i][j] == EMPTY:
+                continue
+            num, _ = player[i][j]
+            if num != 1:
+                return False
+    
     return True
 
-while True :
-    if time >= 1000 :
-        time = -1
-        break
-    elif len(alive) == 1 and sum(alive) == 1:
-        break
-    else :
-        one_term()
-        time += 1
-print(time)
+init_dirs = list(map(int, input().split()))
+for num, move_dir in enumerate(init_dirs, start=1):
+    for i in range(n):
+        for j in range(n):
+            if given_map[i][j] == num:
+                player[i][j] = (num, move_dir - 1)
+                contract[i][j] = (num, k)
 
+for num in range(1, m + 1):
+    for curr_dir in range(DIR_NUM):
+        dirs = list(map(int, input().split()))
+        for i, move_dir in enumerate(dirs):
+            next_dir[num][curr_dir][i] = move_dir - 1
+
+while not end():
+    simulate()
+    elapsed_time += 1
+
+if elapsed_time >= 1000:
+    elapsed_time = -1
+
+print(elapsed_time)
