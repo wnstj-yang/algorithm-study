@@ -1,5 +1,13 @@
+# 2023-08-20(일)
+# 1차 풀이 : 디버깅 못해서 실패
+# 2차 풀이 : 행렬 회전 부분에서 오류가 있었음 -> 수정 후 정답
+
+
 n = int(input())
-board = [list(map(int, input().split())) for _ in range(n)]
+board = [
+    list(map(int, input().split()))
+    for _ in range(n)
+]
 
 n_x, n_y = n // 2, n // 2
 dx, dy = [0, 1, 0, -1], [-1, 0, 1, 0]
@@ -10,7 +18,6 @@ cnt = 0
 
 d_ratio = [[0, 0, 2, 0, 0], [0, 10, 7, 1, 0], [5, 0, 0, 0, 0], [0, 10, 7, 1, 0], [0, 0, 2, 0, 0]]
 
-
 # 청소 진행
 def move():
     global n_x, n_y, cnt
@@ -20,7 +27,7 @@ def move():
 
     for i in range(5):
         for j in range(5):
-            dust = board[n_x][n_y] // 100 * d_ratio[i][j]
+            dust = board[n_x][n_y] * d_ratio[i][j] // 100
             x, y = (n_x + i - 2), (n_y + j - 2)
             if 0 <= x < n and 0 <= y < n:
                 board[x][y] += dust
@@ -37,16 +44,15 @@ def move():
     else:
         cnt += dust
 
-
 while (n_x, n_y) != (0, 0):
     # 이동할 개수만큼
     for _ in range(c_move):
         move()
-        if (n_x, n_y) == (0, 0):
+        if (n_x, n_y) == (0, 0) :
             break
 
     direction = (direction + 1) % 4
-    d_ratio = list(map(list, zip(*d_ratio)))
+    d_ratio = list(map(list, zip(*d_ratio)))[::-1]
 
     # 이동 개수가 증가해야 하는 타이밍 : 방향이 오른쪽이거나 왼쪽 일 때
     if direction == 2 or direction == 0:
