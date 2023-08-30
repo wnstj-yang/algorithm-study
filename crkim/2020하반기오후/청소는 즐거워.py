@@ -20,7 +20,7 @@ def move():
 
     for i in range(5):
         for j in range(5):
-            dust = board[n_x][n_y] // 100 * d_ratio[i][j]
+            dust = (board[n_x][n_y] * d_ratio[i][j]) // 100
             x, y = (n_x + i - 2), (n_y + j - 2)
             if 0 <= x < n and 0 <= y < n:
                 board[x][y] += dust
@@ -38,7 +38,7 @@ def move():
         cnt += dust
 
 
-while (n_x, n_y) != (0, 0):
+while True:
     # 이동할 개수만큼
     for _ in range(c_move):
         move()
@@ -51,5 +51,9 @@ while (n_x, n_y) != (0, 0):
     # 이동 개수가 증가해야 하는 타이밍 : 방향이 오른쪽이거나 왼쪽 일 때
     if direction == 2 or direction == 0:
         c_move += 1
+
+    if (n_x, n_y) == (0, 0):
+        move()
+        break
 
 print(cnt)
